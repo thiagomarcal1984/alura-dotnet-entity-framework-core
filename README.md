@@ -70,3 +70,65 @@ Para rodar o projeto a partir da linha de comando, vá até a raiz do diretório
 ```
 dotnet run --project NomeDoProjeto
 ```
+## Consulta de Artistas
+```Csharp
+// Banco/Connection.cs
+using ScreenSound.Modelos;
+
+// Resto do código
+internal class Connection 
+{
+    // Resto do código
+	public static IEnumerable<Artista> Listar()
+	{
+		var lista = new List<Artista>();
+		using var connection = ObterConexao();
+		connection.Open();
+
+		string sql = "SELECT * FROM Artistas";
+
+		SqlCommand command = new SqlCommand(sql, connection);
+		using SqlDataReader dataReader = command.ExecuteReader();
+		while (dataReader.Read()) {
+			string nomeArtista = Convert.ToString(dataReader["Nome"]);
+			string bioArtista = Convert.ToString(dataReader["Bio"]);
+			int idArtista = Convert.ToInt32(dataReader["id"]);
+			Artista artista = new Artista(nomeArtista, bioArtista) { Id = idArtista};
+
+			lista.Add(artista);
+		}
+
+		return lista;
+	}
+}
+```
+> Os passos para ler do banco são: 
+> 1. Criamos um `SqlCommand` com a string do código SQL e um `SqlConnection`;
+> 2. Criamos um `SqlDataReader` a partir do método de objeto `SqlCommand.ExecuteReader()`;
+> 3. Percorremos o `SqlDataReader` enquanto o método de objeto `SqlDataReader.Read()` for verdadeiro;
+> 4. Para cada coluna do resultado do SQL, acessamos com o padrão `dataReader["nomeColuna"]`.
+> 
+> Todos as classes mencionadas fazem parte do ADO.NET (ActiveX Data Objects .NET).
+
+Agora, a execução do código no programa principal: 
+```Csharp
+// Program.cs
+using ScreenSound.Banco;
+// using ScreenSound.Menus;
+using ScreenSound.Modelos;
+
+
+try
+{
+    var listaArtistas = Connection.Listar();
+    foreach (Artista artista in listaArtistas)
+    {
+        Console.WriteLine(artista);
+    }
+}
+catch (Exception ex)
+{
+    Console.WriteLine(ex);
+}
+return;
+```
