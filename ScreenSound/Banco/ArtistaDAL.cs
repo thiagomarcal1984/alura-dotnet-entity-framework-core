@@ -48,5 +48,34 @@ namespace ScreenSound.Banco
             int retorno = command.ExecuteNonQuery();
             Console.WriteLine($"Linhas afetadas: {retorno}");
         }
+
+        public static void Atualizar(Artista artista)
+        {
+            string sql = "UPDATE Artistas SET Nome = @nome, Bio = @bio WHERE id = @id";
+            
+            using var connection = Connection.ObterConexao();
+            connection.Open();
+
+            SqlCommand command = new SqlCommand(sql, connection);
+            command.Parameters.AddWithValue("@id", artista.Id);
+            command.Parameters.AddWithValue("@nome", artista.Nome);
+            command.Parameters.AddWithValue("@bio", artista.Bio);
+
+            int retorno = command.ExecuteNonQuery();
+            Console.WriteLine($"Linhas atualizadas: {retorno}");
+        }
+
+        public static void Deletar(Artista artista)
+        {
+            string sql = "DELETE FROM Artistas WHERE id = @id";
+
+            using var connection = Connection.ObterConexao();
+            connection.Open();
+
+            SqlCommand command = new SqlCommand(sql, connection);
+            command.Parameters.AddWithValue("@id", artista.Id);
+            int retorno = command.ExecuteNonQuery();
+            Console.WriteLine($"Linhas deletadas: {retorno}");
+        }
     }
 }
