@@ -132,3 +132,80 @@ catch (Exception ex)
 }
 return;
 ```
+
+# Incluindo Artista
+Vamos criar uma camada de acesso a dados (DAL) na classe `ArtistaDAL`:
+
+```Csharp
+// Banco/ArtistaDAL.cs
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.Data.SqlClient;
+using ScreenSound.Modelos;
+
+namespace ScreenSound.Banco
+{
+    internal class ArtistaDAL
+    {
+        public static IEnumerable<Artista> Listar()
+        {
+            // Resto do código.
+        }
+
+        public static void Adicionar(Artista artista)
+        {
+            using var connection = Connection.ObterConexao();
+            connection.Open();
+
+            string sql = "INSERT INTO Artistas (Nome, FotoPerfil, Bio) VALUES (@nome, @perfilPadrao, @bio)";
+
+            SqlCommand command = new SqlCommand(sql, connection);
+            command.Parameters.AddWithValue("@nome", artista.Nome);
+            command.Parameters.AddWithValue("@perfilPadrao", artista.FotoPerfil);
+            command.Parameters.AddWithValue("@bio", artista.Bio);
+
+            int retorno = command.ExecuteNonQuery();
+            Console.WriteLine($"Linhas afetadas: {retorno}");
+        }
+    }
+}
+```
+
+A inserção é realizada por meio do método de objeto `SqlCommand.ExecuteNonQuery()`, que retorno um número inteiro que representa o número de linhas afetadas no banco de dados.
+
+Note também que é necessário acrescentar os parâmetros ao comando (`command.Parameters.AddWithValue("@parmComArroba", valorDoParm)`).
+
+> Note que o método `Listar` foi migrado da classe `Connection` para a classe `ArtistaDAL`.
+>
+> Note também a sintaxe de string formatada do C# (é precedida por um cifrão, ao invés da letra f - como é usado no Python).
+
+Testando o código no programa principal:
+```Csharp
+// Program.cs
+// Resto do código.
+
+try
+{
+    // Teste de inserção de um novo artista.
+    ArtistaDAL.Adicionar(new Artista(
+        "Foo Fighters",
+        "Biografia do Foo Fighters"
+    ));
+
+    var listaArtistas = ArtistaDAL.Listar();
+    
+    foreach (Artista artista in listaArtistas)
+    {
+        Console.WriteLine(artista);
+    }
+}
+catch (Exception ex)
+{
+    Console.WriteLine(ex);
+}
+return;
+```

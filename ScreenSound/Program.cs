@@ -5,7 +5,14 @@ using ScreenSound.Modelos;
 
 try
 {
-    var listaArtistas = Connection.Listar();
+    // Teste de inserção de um novo artista.
+    ArtistaDAL.Adicionar(new Artista(
+        "Foo Fighters",
+        "Biografia do Foo Fighters"
+    ));
+
+    var listaArtistas = ArtistaDAL.Listar();
+    
     foreach (Artista artista in listaArtistas)
     {
         Console.WriteLine(artista);
