@@ -776,3 +776,25 @@ namespace ScreenSound.Banco
 }
 ```
 Note que todos os métodos herdados de `DAL` usam a palavra chave `override` para sobrescrever de fato os métodos abstratos. Note também a sintaxe para herança no C# (`internal class ArtistaDAL: DAL<Artista>`).
+
+## Mão na massa: MusicaDAL com genérico
+```Csharp
+// Banco/MusicaDAL.cs
+// Resto dos imports
+using ScreenSound.Modelos;
+
+namespace ScreenSound.Banco
+{
+    internal class MusicaDAL: DAL<Musica>
+    {
+        private readonly ScreenSoundContext context = new ScreenSoundContext();
+
+        public override IEnumerable<Musica> Listar()
+        {
+            return context.Musicas.ToList();
+        }
+
+        // O restante dos métodos segue o mesmo padrão de ArtistaDAL
+    }
+}
+```
