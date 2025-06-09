@@ -2,45 +2,7 @@
 using ScreenSound.Menus;
 using ScreenSound.Modelos;
 
-
-try
-{
-    // Teste da inserção
-    //Artista novoArtista = new Artista("U2", "Bio do U2");
-    //ArtistaDAL.Adicionar(novoArtista);
-
-    // Teste da atualização    
-    // string n1 = "U2";
-    // string n2 = "Pearl Jam";
-    // Artista artistaParaEditar = new Artista(n1, $"Bio de {n1}") { Id = 1002 };
-    // artistaParaEditar.Nome = n2;
-    // artistaParaEditar.Bio = $"Bio de {n2}";
-    // ArtistaDAL.Atualizar(artistaParaEditar);
-
-    foreach (Artista artista in ArtistaDAL.Listar())
-    {
-        Console.WriteLine(artista);
-    }
-
-    // Teste da remoção
-    //ArtistaDAL.Deletar(artistaParaEditar);
-    // foreach (Artista artista in ArtistaDAL.Listar())
-    // {
-    //     Console.WriteLine(artista);
-    // }
-}
-catch (Exception ex)
-{
-    Console.WriteLine(ex);
-}
-return;
-
-Artista ira = new Artista("Ira!", "Banda Ira!");
-Artista beatles = new("The Beatles", "Banda The Beatles");
-
-Dictionary<string, Artista> artistasRegistrados = new();
-artistasRegistrados.Add(ira.Nome, ira);
-artistasRegistrados.Add(beatles.Nome, beatles);
+var artistaDAL = new ArtistaDAL();
 
 Dictionary<int, Menu> opcoes = new();
 opcoes.Add(1, new MenuRegistrarArtista());
@@ -79,7 +41,7 @@ void ExibirOpcoesDoMenu()
     if (opcoes.ContainsKey(opcaoEscolhidaNumerica))
     {
         Menu menuASerExibido = opcoes[opcaoEscolhidaNumerica];
-        menuASerExibido.Executar(artistasRegistrados);
+        menuASerExibido.Executar(artistaDAL);
         if (opcaoEscolhidaNumerica > 0) ExibirOpcoesDoMenu();
     } 
     else

@@ -436,3 +436,206 @@ namespace ScreenSound.Banco
 Note a interrogação após a declaração do tipo de retorno na assinatura (`Artista?`). Isso significa que o retorno eventualmente pode ser nulo.
 
 O método `FirstOrDefault` recebe como parâmetro uma função que retorna um booleano. Essa função é usada para percorrer o banco e recuperar o primeiro registro que atender à função.
+
+## Ajustando o menu
+Os submenus (que herdam de uma classe de menu) da aplicação recebiam um dicionário de artistas ao invés da DAL de artistas. Então é necessário fazer uma refatoração do código.
+
+Mas o código que fiz até agora usou métodos estáticos. Precisei modificar a classe `ArtistaDAL` para forçar a sua criação e posterior repasse para as subclasses de `Menu`:
+```Csharp
+// Banco/ArtistaDAL.cs
+namespace ScreenSound.Banco
+{
+    internal class ArtistaDAL
+    {
+        // private static readonly ScreenSoundContext context = new ScreenSoundContext();
+        private readonly ScreenSoundContext context = new ScreenSoundContext();
+
+        // public static IEnumerable<Artista> Listar()
+        public IEnumerable<Artista> Listar() 
+        { 
+            // Resto do código
+        }
+
+        // public static void Adicionar (Artista artista)
+        public void Adicionar (Artista artista) 
+        { 
+            // Resto do código
+        }
+
+        // public static void Atualizar(Artista artista)
+        public void Atualizar(Artista artista) 
+        { 
+            // Resto do código
+        }
+        // public static void Deletar(Artista artista)
+        public void Deletar(Artista artista) 
+        { 
+            // Resto do código
+        }
+
+        // public static Artista? ProcurarPeloNome(string nome)
+        public Artista? ProcurarPeloNome(string nome) 
+        { 
+            // Resto do código
+        }
+    }
+}
+```
+
+A refatoração do código de `Menu` para atualização dos submenus pode ser feita no Visual Studio escolhendo a opção `Alterar assinatura...`. Ao usar essa opção, podemos acrescentar o tipo do parâmetro, nome do parâmetro da assinatura e o nome do objeto que será inserido nas chamadas do método refatorado. 
+
+Após a refatoração, será necessário referenciar os métodos corretos de `ArtistaDAL`:
+
+```Csharp
+// Menus.Menu.cs
+using ScreenSound.Banco;
+using ScreenSound.Modelos;
+
+namespace ScreenSound.Menus;
+
+internal class Menu
+{
+    // Resto do código
+    public virtual void Executar(ArtistaDAL artistaDAL)
+    {
+        Console.Clear();
+    }
+}
+```
+
+```Csharp
+// Menus/MenuMostrarArtista.cs
+using ScreenSound.Banco; // Inserção da dependência
+using ScreenSound.Modelos;
+
+namespace ScreenSound.Menus;
+
+internal class MenuMostrarArtistas : Menu
+{
+    public override void Executar(ArtistaDAL artistaDAL) // Inserção da DAL
+    {
+        base.Executar(artistaDAL); // Inserção da DAL
+        ExibirTituloDaOpcao("Exibindo todos os artistas registradas na nossa aplicação");
+
+        foreach (Artista artista in artistaDAL.Listar()) // Aqui está a mudança
+        {
+            Console.WriteLine($"Artista: {artista.Nome}");
+        }
+        // Resto do código
+    }
+}
+
+```
+```Csharp
+// Menus/MenuMostrarMusicas.cs
+using ScreenSound.Banco; // Inserção da dependência
+using ScreenSound.Modelos;
+
+namespace ScreenSound.Menus;
+
+internal class MenuMostrarMusicas : Menu
+{
+    public override void Executar(ArtistaDAL artistaDAL) // Inserção da DAL
+    {
+        base.Executar(artistaDAL); // Inserção da DAL
+        ExibirTituloDaOpcao("Exibir detalhes do artista");
+        Console.Write("Digite o nome do artista que deseja conhecer melhor: ");
+        string nomeDoArtista = Console.ReadLine()!;
+        var artistaRecuperado = artistaDAL.ProcurarPeloNome(nomeDoArtista); // Aqui mudou.
+        if (artistaRecuperado is not null) // Aqui também.
+        {
+            // Resto do código
+        }
+    }
+}
+```
+
+```Csharp
+// Menus/MenuRegistrarArtista.cs
+using ScreenSound.Banco; // Inserção da dependência
+using ScreenSound.Modelos;
+
+namespace ScreenSound.Menus;
+
+internal class MenuRegistrarArtista : Menu
+{
+    public override void Executar(ArtistaDAL artistaDAL) // Inserção da DAL
+    {
+        base.Executar(artistaDAL); // Inserção da DAL
+        ExibirTituloDaOpcao("Registro dos Artistas");
+        Console.Write("Digite o nome do artista que deseja registrar: ");
+        string nomeDoArtista = Console.ReadLine()!;
+        Console.Write("Digite a bio do artista que deseja registrar: ");
+        string bioDoArtista = Console.ReadLine()!;
+        Artista artista = new Artista(nomeDoArtista, bioDoArtista);
+        artistaDAL.Adicionar(artista); // Aqui mudou.
+        Console.WriteLine($"O artista {nomeDoArtista} foi registrado com sucesso!");
+        Thread.Sleep(4000);
+        Console.Clear();
+    }
+}
+```
+
+```Csharp
+// Menus/MenuRegistrarMusica.cs
+using ScreenSound.Banco; // Inserção da dependência
+using ScreenSound.Modelos;
+
+namespace ScreenSound.Menus;
+
+internal class MenuRegistrarMusica : Menu
+{
+    public override void Executar(ArtistaDAL artistaDAL) // Inserção da DAL
+    {
+        base.Executar(artistaDAL); // Inserção da DAL
+        ExibirTituloDaOpcao("Registro de músicas");
+        Console.Write("Digite o artista cuja música deseja registrar: ");
+        string nomeDoArtista = Console.ReadLine()!;
+        var artistaRecuperado = artistaDAL.ProcurarPeloNome(nomeDoArtista); // Aqui mudou
+        if (artistaRecuperado is not null) // Aqui também.
+        {
+            // Resto do código
+        }
+    }
+}
+```
+
+```Csharp
+// Menus/MenuSair.cs
+using ScreenSound.Banco; // Inserção da dependência.
+using ScreenSound.Modelos;
+
+namespace ScreenSound.Menus;
+
+internal class MenuSair : Menu
+{
+    public override void Executar(ArtistaDAL artistaDAL) // Inserção da DAL... mas não é usada.
+    {
+        Console.WriteLine("Tchau tchau :)");
+    }
+}
+```
+
+Agora, o programa principal vai repassar a `ArtistaDAL` para os menus:
+
+```Csharp
+// Program.cs
+// Resto do código
+
+var artistaDAL = new ArtistaDAL();
+
+// Resto do código
+
+void ExibirOpcoesDoMenu()
+{
+    // Resto do código
+    if (opcoes.ContainsKey(opcaoEscolhidaNumerica))
+    {
+        Menu menuASerExibido = opcoes[opcaoEscolhidaNumerica];
+        menuASerExibido.Executar(artistaDAL); // Aqui mudou.
+        // Resto do código
+    }
+}
+
+// Resto do código
+```
