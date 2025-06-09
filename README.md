@@ -258,3 +258,76 @@ namespace ScreenSound.Banco
 Na essência, o código .NET para atualização e remoação não é diferente da inserção.
 
 > Lembre-se da palavra reservada `using`: isso facilita o descarte da conexão após a execução do bloco de código.
+
+# Bibliotecas ORM
+## Instalando o Entity
+Vamos instalar o pacote NuGet para permitir a conexão com o SQL Server. Acesse o menu `Ferramentas -> Gerenciador de Pacotes do NuGet -> Gerenciar Pacotes do NuGet para a Solução...`.
+Em seguida procure pelo pacote `Microsoft.EntityFrameworkCore.SqlServer`.
+
+> Alternativamente, escreva esta linha de código no arquivo do projeto (no caso, `ScreenSound.csproj`):
+> ```XML
+> <Project Sdk="Microsoft.NET.Sdk">
+> 
+>   <PropertyGroup>
+>     <!-- Resto do código -->
+>   </PropertyGroup>
+> 
+>   <!-- Resto do código -->
+> 
+>   <ItemGroup>
+>     <!-- Resto do código -->
+>     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.14" />
+>   </ItemGroup>
+> 
+> </Project>
+> ```
+
+A classe `Banco/Connection` será renomeada para `Banco/ScreenSoundContext` e vai ter o seguinte conteúdo:
+```Csharp
+using Microsoft.EntityFrameworkCore;
+// Resto do código
+
+namespace ScreenSound.Banco;
+
+internal class ScreenSoundContext : DbContext
+{
+    public DbSet<Artista> Artistas { get; set; }
+
+	private static string connectionString = "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=ScreenSound;Integrated Security=True;Encrypt=False;Trust Server Certificate=False;Application Intent=ReadWrite;Multi Subnet Failover=False";
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        optionsBuilder.UseSqlServer(connectionString);
+    }
+}
+```
+Note que a classe extende da classe `DbContext`, e também sobrescrevemos o método `OnConfiguring`. Dentro do método sobrescrito, definimos no objeto `optionsBuilder` a string de conexão com o SQL Server.
+
+## Mapeando Artistas
+
+Note também que a tabela do banco de dados chamada `Artistas` foi mapeada por meio da declaração da propriedade (com getter e setter) do tipo `DbSet<Artista>` (sendo que `Artista` é a classe de modelo criada anteriormente).
+
+A classe `ArtistaDAL.cs` por ora vai ser reescrita para usar o Entity Framework e as operações CRUD no programa principal também serão removidas (com exceção de listar):
+
+```Csharp
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.Data.SqlClient;
+using ScreenSound.Modelos;
+
+namespace ScreenSound.Banco
+{
+    internal class ArtistaDAL
+    {
+        public static IEnumerable<Artista> Listar()
+        {
+            using var context = new ScreenSoundContext();
+            return context.Artistas.ToList<Artista>();
+        }
+    }
+}
+```
+Note que primeiro é necessário instanciar o contexto, referenciar o `DbSet` desejado (no caso, `Artistas`) e em seguida usar o método `ToList<Entidade>` do DbSet Artistas para retornar a lista.

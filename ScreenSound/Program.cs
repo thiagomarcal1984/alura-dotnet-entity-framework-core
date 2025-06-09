@@ -5,28 +5,6 @@ using ScreenSound.Modelos;
 
 try
 {
-    /*
-    // Código da atualização
-    Artista djavan = new Artista("Djavan", "Biografia do Djavan");
-    djavan.Id = 1;
-    ArtistaDAL.Atualizar(djavan);
-    */
-
-    /*
-    // Código da remoção
-    Artista aRemover = new Artista("", "");
-    aRemover.Id = 4;
-    ArtistaDAL.Deletar(aRemover);
-    */
-
-    /*
-    // Código da inserção.
-    ArtistaDAL.Adicionar(new Artista(
-        "Foo Fighters",
-        "Biografia do Foo Fighters"
-    ));
-    */
-
     var listaArtistas = ArtistaDAL.Listar();
     
     foreach (Artista artista in listaArtistas)
