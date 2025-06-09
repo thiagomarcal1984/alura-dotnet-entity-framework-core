@@ -639,3 +639,77 @@ void ExibirOpcoesDoMenu()
 
 // Resto do código
 ```
+## Mão na massa: persistindo músicas
+
+Script para criação da tabela Musicas:
+```SQL
+create table Musicas(
+    Id INT PRIMARY KEY IDENTITY(1,1),
+    Nome NVARCHAR(255) NOT NULL
+);
+```
+
+Atualização do código do `ScreenSoundContext.cs`:
+```Csharp
+// Banco/ScreenSoundContext.cs
+using Microsoft.EntityFrameworkCore;
+using ScreenSound.Modelos;
+// Resto do código
+
+namespace ScreenSound.Banco;
+
+internal class ScreenSoundContext : DbContext
+{
+    public DbSet<Artista> Artistas { get; set; }
+    public DbSet<Musica> Musicas { get; set; }
+
+    private static string connectionString = "...string_de_conexao...";
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        optionsBuilder.UseSqlServer(connectionString);
+    }
+}
+```
+Criação da camada `MusicaDAL.cs`:
+```Csharp
+// MusicaDAL.cs
+// Resto do código
+using ScreenSound.Modelos;
+
+namespace ScreenSound.Banco
+{
+    internal class MusicaDAL
+    {
+        private readonly ScreenSoundContext context = new ScreenSoundContext();
+
+        public IEnumerable<Musica> Listar()
+        {
+            return context.Musicas.ToList<Musica>();
+        }
+
+        public void Adicionar (Musica Musica)
+        {
+            context.Musicas.Add(Musica);
+            context.SaveChanges();
+        }
+
+        public void Atualizar(Musica Musica)
+        {
+            context.Musicas.Update(Musica);
+            context.SaveChanges();
+        }
+        public void Deletar(Musica Musica)
+        {
+            context.Musicas.Remove(Musica);
+            context.SaveChanges();
+        }
+
+        public Musica? ProcurarPeloNome(string nome)
+        {
+            return context.Musicas.FirstOrDefault(a => a.Nome.Equals(nome));
+        }
+    }
+}
+```
+> Note que a lógica é a mesma de `ArtistaDAL`. O que muda é a referência à tabela (DBSet).

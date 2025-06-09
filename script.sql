@@ -4,3 +4,8 @@ create table Artistas(
     Bio NVARCHAR(255) NOT NULL,
     FotoPerfil NVARCHAR(255) NOT NULL
 );
+
+create table Musicas(
+    Id INT PRIMARY KEY IDENTITY(1,1),
+    Nome NVARCHAR(255) NOT NULL
+);
