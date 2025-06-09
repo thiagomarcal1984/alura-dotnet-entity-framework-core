@@ -414,3 +414,25 @@ catch (Exception ex)
 return;
 ```
 > Importante: o contexto NÃO permite operações sobres dois objetos diferentes com o mesmo número de ID.
+
+## Mão na massa: criando o método recuperar pelo nome
+Código da classe `ArtistaDAL.cs`:
+```Csharp
+// Resto do código
+using ScreenSound.Modelos;
+
+namespace ScreenSound.Banco
+{
+    internal class ArtistaDAL
+    {
+        // Resto do código 
+        public static Artista? ProcurarPeloNome(string nome)
+        {
+            return context.Artistas.FirstOrDefault(a => a.Nome.Equals(nome));
+        }
+    }
+}
+```
+Note a interrogação após a declaração do tipo de retorno na assinatura (`Artista?`). Isso significa que o retorno eventualmente pode ser nulo.
+
+O método `FirstOrDefault` recebe como parâmetro uma função que retorna um booleano. Essa função é usada para percorrer o banco e recuperar o primeiro registro que atender à função.

@@ -33,5 +33,10 @@ namespace ScreenSound.Banco
             context.Artistas.Remove(artista);
             context.SaveChanges();
         }
+
+        public static Artista? ProcurarPeloNome(string nome)
+        {
+            return context.Artistas.FirstOrDefault(a => a.Nome.Equals(nome));
+        }
     }
 }
