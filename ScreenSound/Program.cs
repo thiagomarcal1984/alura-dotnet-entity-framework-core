@@ -5,12 +5,29 @@ using ScreenSound.Modelos;
 
 try
 {
-    var listaArtistas = ArtistaDAL.Listar();
-    
-    foreach (Artista artista in listaArtistas)
+    // Teste da inserção
+    //Artista novoArtista = new Artista("U2", "Bio do U2");
+    //ArtistaDAL.Adicionar(novoArtista);
+
+    // Teste da atualização    
+    // string n1 = "U2";
+    // string n2 = "Pearl Jam";
+    // Artista artistaParaEditar = new Artista(n1, $"Bio de {n1}") { Id = 1002 };
+    // artistaParaEditar.Nome = n2;
+    // artistaParaEditar.Bio = $"Bio de {n2}";
+    // ArtistaDAL.Atualizar(artistaParaEditar);
+
+    foreach (Artista artista in ArtistaDAL.Listar())
     {
         Console.WriteLine(artista);
     }
+
+    // Teste da remoção
+    //ArtistaDAL.Deletar(artistaParaEditar);
+    // foreach (Artista artista in ArtistaDAL.Listar())
+    // {
+    //     Console.WriteLine(artista);
+    // }
 }
 catch (Exception ex)
 {

@@ -331,3 +331,86 @@ namespace ScreenSound.Banco
 }
 ```
 Note que primeiro é necessário instanciar o contexto, referenciar o `DbSet` desejado (no caso, `Artistas`) e em seguida usar o método `ToList<Entidade>` do DbSet Artistas para retornar a lista.
+
+## Refatorando ArtistaDAL
+O resultado da refatoração da classe ArtistaDAL será:
+
+```Csharp
+// Banco/ArtistaDAL
+// Resto do código
+using ScreenSound.Modelos;
+
+namespace ScreenSound.Banco
+{
+    internal class ArtistaDAL
+    {
+        private static readonly ScreenSoundContext context = new ScreenSoundContext();
+
+        public static IEnumerable<Artista> Listar()
+        {
+            return context.Artistas.ToList<Artista>();
+        }
+
+        public static void Adicionar (Artista artista)
+        {
+            context.Artistas.Add(artista);
+            context.SaveChanges();
+        }
+
+        public static void Atualizar(Artista artista)
+        {
+            context.Artistas.Update(artista);
+            context.SaveChanges();
+        }
+        public static void Deletar(Artista artista)
+        {
+            context.Artistas.Remove(artista);
+            context.SaveChanges();
+        }
+    }
+}
+```
+> Note que as operações que modificam o banco de dados (métodos `Add`, `Update` e `Remove` do DbSet`Artistas`) são seguidos pela confirmação da alteração (método `context.SaveChanges`). Note também que o objeto de contexto `ScreenSoundContext` pode ser reusado pelos métodos várias vezes, sem necessidade de destrui-lo e recriá-lo.
+
+Seguem as modificações do programa principal:
+```Csharp
+// Program.cs
+
+using ScreenSound.Banco;
+using ScreenSound.Menus;
+using ScreenSound.Modelos;
+
+
+try
+{
+    // Teste da inserção
+    string n1 = "U2";
+    Artista novoArtista = new Artista("U2", $"Bio do {n1}");
+    ArtistaDAL.Adicionar(novoArtista);
+
+    // Teste da atualização    
+    string n2 = "Pearl Jam";
+    Artista artistaParaEditar = new Artista(n1, $"Bio de {n1}") { Id = 1002 };
+    artistaParaEditar.Nome = n2;
+    artistaParaEditar.Bio = $"Bio de {n2}";
+    ArtistaDAL.Atualizar(artistaParaEditar);
+
+    foreach (Artista artista in ArtistaDAL.Listar())
+    {
+        Console.WriteLine(artista);
+    }
+
+    // Teste da remoção
+    ArtistaDAL.Deletar(artistaParaEditar);
+    foreach (Artista artista in ArtistaDAL.Listar())
+    {
+        Console.WriteLine(artista);
+    }
+}
+catch (Exception ex)
+{
+    Console.WriteLine(ex);
+}
+return;
+```
+> Importante: o contexto NÃO permite operações sobres dois objetos diferentes com o mesmo número de ID.

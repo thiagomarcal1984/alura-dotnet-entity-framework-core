@@ -10,10 +10,28 @@ namespace ScreenSound.Banco
 {
     internal class ArtistaDAL
     {
+        private static readonly ScreenSoundContext context = new ScreenSoundContext();
+
         public static IEnumerable<Artista> Listar()
         {
-            using var context = new ScreenSoundContext();
             return context.Artistas.ToList<Artista>();
+        }
+
+        public static void Adicionar (Artista artista)
+        {
+            context.Artistas.Add(artista);
+            context.SaveChanges();
+        }
+
+        public static void Atualizar(Artista artista)
+        {
+            context.Artistas.Update(artista);
+            context.SaveChanges();
+        }
+        public static void Deletar(Artista artista)
+        {
+            context.Artistas.Remove(artista);
+            context.SaveChanges();
         }
     }
 }
