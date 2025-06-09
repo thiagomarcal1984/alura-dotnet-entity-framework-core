@@ -133,7 +133,7 @@ catch (Exception ex)
 return;
 ```
 
-# Incluindo Artista
+## Incluindo Artista
 Vamos criar uma camada de acesso a dados (DAL) na classe `ArtistaDAL`:
 
 ```Csharp
@@ -713,3 +713,66 @@ namespace ScreenSound.Banco
 }
 ```
 > Note que a lógica é a mesma de `ArtistaDAL`. O que muda é a referência à tabela (DBSet).
+
+# Generics
+## Utilizando Generics
+Vamos criar uma classe abstrata chamada `DAL`. Ela vai impor os CRUDs sobre as demais DALs.
+
+```Csharp
+// Banco/DAL.cs
+// Imports
+
+namespace ScreenSound.Banco
+{
+    internal abstract class DAL<T>
+    {
+        public abstract IEnumerable<T> Listar();
+        public abstract void Adicionar(T objeto);
+        public abstract void Atualizar(T objeto);
+        public abstract void Deletar(T objeto);
+    }
+}
+```
+> Note a letra `T` dentro do diamante na declaração da classe abstrata. Essa letra T (que na verdade pode ser qualquer outra) indica o tipo genérico que será substituído pelo tipo específico ao instanciar um objeto de uma subclasse de DAL.
+
+Agora, a classe `ArtistaDAL` será modificada para herdar de `DAL`:
+```Csharp
+// Outros imports
+using ScreenSound.Modelos;
+
+namespace ScreenSound.Banco
+{
+    internal class ArtistaDAL: DAL<Artista>
+    {
+        private readonly ScreenSoundContext context = new ScreenSoundContext();
+
+        public override IEnumerable<Artista> Listar()
+        {
+            return context.Artistas.ToList();
+        }
+
+        public override void Adicionar (Artista artista)
+        {
+            context.Artistas.Add(artista);
+            context.SaveChanges();
+        }
+
+        public override void Atualizar(Artista artista)
+        {
+            context.Artistas.Update(artista);
+            context.SaveChanges();
+        }
+        public override void Deletar(Artista artista)
+        {
+            context.Artistas.Remove(artista);
+            context.SaveChanges();
+        }
+
+        public Artista? ProcurarPeloNome(string nome)
+        {
+            return context.Artistas.FirstOrDefault(a => a.Nome.Equals(nome));
+        }
+    }
+}
+```
+Note que todos os métodos herdados de `DAL` usam a palavra chave `override` para sobrescrever de fato os métodos abstratos. Note também a sintaxe para herança no C# (`internal class ArtistaDAL: DAL<Artista>`).
