@@ -798,3 +798,85 @@ namespace ScreenSound.Banco
     }
 }
 ```
+## Implementando métodos genéricos
+A classe `DAL` vai concentrar os métodos genéricos das operações CRUD. Vamos criar nela um construtor com acesso `protected` e implementar os métodos:
+
+```Csharp
+// Banco/DAL.cs
+// Os imports foram omitidos.
+
+namespace ScreenSound.Banco
+{
+    internal abstract class DAL<T> where T : class
+    {
+        protected readonly ScreenSoundContext context;
+        protected DAL(ScreenSoundContext context){
+            this.context = context;
+        }
+        public IEnumerable<T> Listar()
+        {
+            return context.Set<T>().ToList();
+        }
+        public void Adicionar(T objeto)
+        {
+            context.Set<T>().Add(objeto);
+            context.SaveChanges();
+        }
+
+        public void Atualizar(T objeto)
+        {
+            context.Set<T>().Update(objeto);
+            context.SaveChanges();
+        }
+
+        public void Deletar(T objeto)
+        {
+            context.Set<T>().Remove(objeto);
+            context.SaveChanges();
+        }
+    }
+}
+```
+> Note o texto `where T : class` após `internal abstract class DAL<T>` na declaração da classe: `where` impõe uma restrição aos tipos de dados do tipo T. Uma possibilidade é limitar o tipo com `where` usando uma superclasse de modelo (no exemplo, estamos usando apenas `class` mesmo ao invés da superclasse de modelo).
+
+Adaptação das subclasses de DAL (`ArtistaDAL` e `MusicaDAL`):
+```Csharp
+// Banco/ArtistaDAL.cs
+// Resto dos imports
+using ScreenSound.Modelos;
+
+namespace ScreenSound.Banco
+{
+    internal class ArtistaDAL: DAL<Artista>
+    {
+        public ArtistaDAL(ScreenSoundContext context): base(context) {}
+
+        public Artista? ProcurarPeloNome(string nome)
+        {
+            return context.Artistas.FirstOrDefault(a => a.Nome.Equals(nome));
+        }
+    }
+}
+```
+> Note o código `: base(context) {}`: ele representa a invocação do construtor da superclasse `DAL`, e o parâmetro context é fornecido para esse construtor. O construtor local está vazio (note as chaves `{}`).
+> O método `ProcurarPeloNome` não é herdado, portanto foi necessário implementá-lo aqui.
+
+O mesmo para `MusicaDAL`:
+```Csharp
+// Banco/MusicaDAL.cs
+// Resto dos imports
+using ScreenSound.Modelos;
+
+namespace ScreenSound.Banco
+{
+    internal class MusicaDAL: DAL<Musica>
+    {
+        public MusicaDAL(ScreenSoundContext context): base(context) {}
+
+        public Musica? ProcurarPeloNome(string nome)
+        {
+            return context.Musicas.FirstOrDefault(a => a.Nome.Equals(nome));
+        }
+    }
+}
+```
