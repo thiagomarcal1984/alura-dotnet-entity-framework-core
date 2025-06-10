@@ -880,3 +880,94 @@ namespace ScreenSound.Banco
     }
 }
 ```
+## Utilizando Func
+A classe `DAL` não será mais abstrata, uma vez que as demais classes DAL (`ArtistaDAL` e `MusicaDAL`) serão removidas.
+```Csharp
+// Banco/DAL.cs
+// Imports omitidos
+
+namespace ScreenSound.Banco
+{
+    internal class DAL<T> where T : class
+    {
+        protected readonly ScreenSoundContext context;
+        public DAL(ScreenSoundContext context){
+            this.context = context;
+        }
+
+        // Códigos de CRUD omitidos
+
+
+        public T? RecuperarPor(Func<T, bool> condicao)
+        {
+            return context.Set<T>().FirstOrDefault(condicao);
+        }
+    }
+}
+```
+> Note o parâmetro `Func<T, bool> condicao` do novo método `RecuperarPor`. É um jeito de generalizar a busca a partir de uma função. Neste exemplo, a função batizada de `condicao` usa um objeto do tipo `T` e retorna um `bool`.
+
+## Mão na massa: atualizando os menus
+O método `Executar` da classe `Menus/Menu` precisa ter seu parâmetro de execução mudado. Antes era `ArtistaDAL` (que não existe mais). Agora usaremos o a DAL genérica e usaremos a classe Artista como critério.
+
+Código da superclasse `Menus/Menu`:
+```Csharp
+// Menus/Menu.cs
+// Imports omitidos
+internal class Menu
+{
+    // Resto do código
+    public virtual void Executar(DAL<Artista> artistaDAL)
+    {
+        // Resto do código
+    }
+}
+```
+Vamos exemplificar o uso da nova assinatura do método `Executar` somente na classe `MenuMostrarMusica`:
+```Csharp
+// Menus/MenuMostrarMusica.cs
+// Importos omitidos.
+namespace ScreenSound.Menus;
+
+internal class MenuMostrarMusicas : Menu
+{
+    public override void Executar(DAL<Artista> artistaDAL)
+    {
+        base.Executar(artistaDAL);
+        ExibirTituloDaOpcao("Exibir detalhes do artista");
+        Console.Write("Digite o nome do artista que deseja conhecer melhor: ");
+        string nomeDoArtista = Console.ReadLine()!;
+        var artistaRecuperado = artistaDAL.RecuperarPor(a => a.Nome == nomeDoArtista);
+        // Resto do código
+    }
+}
+```
+
+> Note a sintaxe da condição fornecida para o método `RecuperarPor`:
+> ```Csharp
+>      // Código em Banco/DAL.cs
+>      public T? RecuperarPor(Func<T, bool> condicao)
+>      {
+>          return context.Set<T>().FirstOrDefault(condicao);
+>      }
+> ```
+>
+> A função fornecida usa um objeto de tipo `T` e na chamada do método foi batizada de `a`. Em seguida, acrescentamos uma seta (`=>`). Finalmente colocamos o corpo/retorno da função (no caso, o retorno da função é do tipo `bool`, conforme assinatura do método `RecuperarPor`). O teste booleano aplicado é `a.Nome == nomeDoArtista`. Na primeira vez em que o teste for verdadeiro, o objeto testado `T` é retornado.
+
+Finalmente, vamos modificar o programa principal para fornecer o `DAL` correto:
+```Csharp
+// Program.cs
+// Resto do código
+var artistaDAL = new DAL<Artista>(new ScreenSoundContext());
+
+void ExibirOpcoesDoMenu()
+{
+    // Resto do código
+    if (opcoes.ContainsKey(opcaoEscolhidaNumerica))
+    {
+        Menu menuASerExibido = opcoes[opcaoEscolhidaNumerica];
+        menuASerExibido.Executar(artistaDAL); // Fornece o DAL para o menu selecionado.
+        // Resto do código
+    }
+}
+```
