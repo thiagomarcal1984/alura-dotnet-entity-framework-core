@@ -1057,3 +1057,61 @@ Done.
 PM> 
 ```
 Após a execução deste comando, o banco de dados `ScreenSoundV0` será criado e nele as tabelas preparadas na migration de nome `projetoInicial`. Um outra tabela também será criada: a tabela `dbo.__EFMigrationsHistory`. Ela vai armazenar a identificação dos arquivos das migrations (e a versão do Entity Framework usada).
+
+## Inserindo dados
+Primeiro, vamos acrescentar uma nova migration chamada `PopularTabela` usando o Console do Gerenciador de Pacotes:
+```bash
+PM> Add-Migration PopularTabela
+Build started...
+Build succeeded.
+To undo this action, use Remove-Migration.
+PM> 
+```
+O(s) arquivo(s) da nova migration vai implementar os métodos `Up` e `Down`, mas em branco. O preenchimento deles será algo parecido com o código a seguir:
+```Csharp
+// {timestamp}_PopularTabela.cs
+namespace ScreenSound.Migrations
+{
+    /// <inheritdoc />
+    public partial class PopularTabela : Migration
+    {
+        /// <inheritdoc />
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            // O método InsertData recebe o nome da tabela, o nome das colunas e os valores para 
+            // a linha que está sendo acrescentada.
+            migrationBuilder.InsertData(
+                "Artistas", 
+                new string[] {
+                    "Nome", "Bio", "FotoPerfil"
+                }, 
+                new object[] {
+                    "Djavan", "Bio do Djavan", 
+                    "https://cdn.pixabay.com/photo/2016/08/08/09/17/avatar-1577909_1280.png"
+                }
+            );
+            // Outras inserções usando o migrationBuilder.
+            migrationBuilder.InsertData(nomeTabela, arrayColunas, arrayValores);
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            // Execução de SQL cru para apagar os registros da tabela.
+            migrationBuilder.Sql("DELETE FROM Artistas");
+        }
+    }
+}
+```
+> O método `InsertData` do objeto `migrationBuilder` recebe o nome da tabela, o nome das colunas e os valores para a linha que está sendo acrescentada. Já o método `Sql` do objeto `migrationBuilder` executa um script SQL cru.
+
+Vamos agora executar a atualização do banco aplicando a migration com o comando `Update-Table` do Console do Gerenciador de Pacotes
+```bash
+PM> Update-Database
+Build started...
+Build succeeded.
+Applying migration '20250616230436_PopularTabela'.
+Done.
+PM> 
+```
+> Note que o comando `Update-Database` não precisa de parâmetros. Na primeira aplicação da migration, especificamos o nome da migration, mas isso não é obrigatório.
