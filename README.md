@@ -1024,3 +1024,36 @@ To undo this action, use Remove-Migration.
 PM> 
 ```
 Depois deste comando, o diretório `Migrations` será criado e dentro dele os arquivos necessários para executar as migrations também serão criados.
+
+## Update-Database
+Vamos estudar os arquivos gerados ao adicionar a migration:
+
+O arquivo`{timestamp}_{nome da migration}.cs` (e o seu complemento `{timestamp}_{nome da migration}.Designer.cs`) declaram uma classe que extende de Migration. Esta classe tem basicamente dois métodos: `Up` e `Down`. Eles servem para aplicar e desaplicar a migration.
+
+Geralmente a aplicação das migrations é feita num banco de dados em branco. Então, vamos mudar a string de conexão para usar um banco de dados com o nome `ScreenSoundV0`. Ao mudar a string de conexão, esse banco de dados será criado e nele as migrations serão aplicadas.
+
+```Csharp
+// Imports
+
+namespace ScreenSound.Banco;
+
+internal class ScreenSoundContext : DbContext
+{
+    // Resto do código
+    private static string connectionString = "Data Source=(localdb)\\MSSQLLocalDB;" + 
+        "Initial Catalog=ScreenSoundV0;Integrated Security=True;Encrypt=False;" + 
+        "Trust Server Certificate=False;Application Intent=ReadWrite;Multi Subnet Failover=False";
+
+    // Resto do código
+}
+```
+Para aplicar as migrations, execute o comando `Update-Database {nome da migration}` no Console do Gerenciador de Pacotes:
+```bash
+PM> Update-Database projetoInicial
+Build started...
+Build succeeded.
+Applying migration '20250616223713_projetoInicial'.
+Done.
+PM> 
+```
+Após a execução deste comando, o banco de dados `ScreenSoundV0` será criado e nele as tabelas preparadas na migration de nome `projetoInicial`. Um outra tabela também será criada: a tabela `dbo.__EFMigrationsHistory`. Ela vai armazenar a identificação dos arquivos das migrations (e a versão do Entity Framework usada).
