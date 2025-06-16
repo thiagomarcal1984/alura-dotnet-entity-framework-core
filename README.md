@@ -971,3 +971,56 @@ void ExibirOpcoesDoMenu()
     }
 }
 ```
+# Migrations
+## Utilizando Migrations
+Precisaremos instalar duas dependências com o NuGet  (neste projeto a versão de ambas é 7.0.14): 
+1. Microsoft.EntityFrameworkCore.Design
+2. Microsoft.EntityFrameworkCore.Tools
+
+Conteúdo do arquivo `ScreenSound.csproj` após a instalação das dependências:
+```XML
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Resto do código -->
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
+    <!-- Nova dependência: Design -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.14">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.14" />
+    <!-- Nova dependência: Tools -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.14">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+</Project>
+```
+
+Agora, vamos usar a CLI do NuGet: `Ferramentas -> Gerenciador de pacotes do NuGet -> Console do Gerenciador de Pacotes.`
+
+> De uma forma estranha, a CLI do NuGet não fica separada do Visual Studio. 
+
+Na Console do Gerenciador de Pacotes, executamos o comando `Add-Migration {nome da migration}` para criarmos uma migration. Veja a saída do comando::
+```bash
+Cada pacote é licenciado para você por seu proprietário. A NuGet não é 
+responsável por pacotes de terceiros nem concede licenças a eles. Alguns 
+pacotes podem incluir dependências que são administradas por licenças 
+adicionais. Siga a URL da origem (feed) do pacote para determinar todas 
+as dependências.
+
+Versão 6.14.0.116 do Host do Console do Gerenciador de Pacotes
+
+Digite 'get-help NuGet' para ver todos os comandos disponíveis do NuGet.
+
+PM> Add-Migration projetoInicial
+Build started...
+Build succeeded.
+To undo this action, use Remove-Migration.
+PM> 
+```
+Depois deste comando, o diretório `Migrations` será criado e dentro dele os arquivos necessários para executar as migrations também serão criados.
