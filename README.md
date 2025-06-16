@@ -1224,3 +1224,66 @@ Applying migration '20250616232809_AdicionarColunaAnoLancamento'.
 Done.
 PM> 
 ```
+## Mão na massa: adicionando músicas na tabela
+Criação da migration `PopularMusicas` no Console do Gerenciador de Pacotes:
+```bash
+PM> Add-Migration PopularMusicas
+Build started...
+Build succeeded.
+To undo this action, use Remove-Migration.
+PM> 
+```
+
+Edição da migration:
+```Csharp
+// Migrations/{timestamp}_PopularMusicas.cs
+using Microsoft.EntityFrameworkCore.Migrations;
+
+#nullable disable
+
+namespace ScreenSound.Migrations
+{
+    /// <inheritdoc />
+    public partial class PopularMusicas : Migration
+    {
+        /// <inheritdoc />
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.InsertData(
+                "Musicas", 
+                new string[] { "Nome", "AnoLancamento" }, 
+                new object[] { "Oceano", 1989 }
+            );
+            migrationBuilder.InsertData(
+                "Musicas", 
+                new string[] { "Nome", "AnoLancamento" }, 
+                new object[] { "Flor de Lis", 1976 }
+            );
+            migrationBuilder.InsertData(
+                "Musicas", 
+                new string[] { "Nome", "AnoLancamento" }, 
+                new object[] { "Samurai", 1982 }
+            );
+            migrationBuilder.InsertData(
+                "Musicas", 
+                new string[] { "Nome", "AnoLancamento" }, 
+                new object[] { "Se", 1992 }
+            );
+        }
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.Sql("DELETE FROM Musicas");
+        }
+    }
+}
+```
+Aplicação da migration no Console do Gerenciador de Pacotes:
+```bash
+PM> Update-Database
+Build started...
+Build succeeded.
+Applying migration '20250616234008_PopularMusicas'.
+Done.
+PM> 
+```
