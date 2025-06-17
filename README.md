@@ -1417,3 +1417,102 @@ Applying migration '20250617010721_RelacionarArtistaMusica'.
 Done.
 PM> 
 ```
+## Exibindo no menu
+Vamos inserir a dependência `Proxies` do Entity Framework: 
+```XML
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Resto do código -->
+
+  <ItemGroup>
+    <!-- Resto do código -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="7.0.14" />
+  </ItemGroup>
+
+</Project>
+```
+Vamos aplicar o lazy loading no arquivo de contexto `ScreenSoundContext.cs`:
+```Csharp
+// Banco/ScreenSoundContext.cs
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using ScreenSound.Modelos;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ScreenSound.Banco;
+
+internal class ScreenSoundContext : DbContext
+{
+    // Resto do código
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        optionsBuilder
+            .UseSqlServer(connectionString)
+            .UseLazyLoadingProxies(); // Código acrescentado.
+    }
+}
+```
+Vamos adaptar as classes de modelo para suportar o lazy loading. Para isso, as classes devem ser públicas e os objetos que possuem relacionamentos devem ser anotados com a palavra chave `virtual`.
+
+```Csharp
+// Modelos/Artista.cs
+namespace ScreenSound.Modelos; 
+
+public class Artista 
+{
+    public virtual ICollection<Musica> Musicas { get; set; } = new List<Musica>();
+    // Resto do código
+}
+```
+
+```Csharp
+// Modelos/Musica.cs
+namespace ScreenSound.Modelos; 
+
+public class Musica
+{
+    public virtual Artista? Artista { get; set; }
+    // Resto do código
+}
+```
+> Reforçando: para usar o `Proxies` do Entity Framework e o seu recurso de lazy loading, as classes de modelo devem ser públicas e os objetos com relacionamentos devem ser anotados com a palavra reservada `virtual`.
+
+Vamos mudar a classe `MenuRegistrarMusica` para atualizar a tabela de música:
+```Csharp
+// Menus/MenuRegistrarMusica.cs
+// Imports omitidos.
+
+namespace ScreenSound.Menus;
+
+internal class MenuRegistrarMusica : Menu
+{
+    public override void Executar(DAL<Artista> artistaDAL)
+    {
+        // Resto do código
+        var artistaRecuperado = artistaDAL.RecuperarPor(a => a.Nome == nomeDoArtista);
+        if (artistaRecuperado is not null)
+        {
+            Console.Write("Agora digite o título da música: ");
+            string tituloDaMusica = Console.ReadLine()!;
+            Console.Write("Agora digite o ano de lançamento da música: ");
+            string anoLancamento = Console.ReadLine()!;
+            artistaRecuperado.AdicionarMusica(new Musica(tituloDaMusica) {
+                AnoLancamento = Convert.ToInt32(anoLancamento)
+            });
+            Console.WriteLine($"A música {tituloDaMusica} de {nomeDoArtista} foi registrada com sucesso!");
+            artistaDAL.Atualizar(artistaRecuperado);
+            Thread.Sleep(4000);
+            Console.Clear();
+        }
+        else
+        {
+            // Resto do código.
+        }
+    }
+}
+```
