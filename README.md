@@ -1287,3 +1287,133 @@ Applying migration '20250616234008_PopularMusicas'.
 Done.
 PM> 
 ```
+# Relacionamento
+## Relacionando artista a música
+Faremos alguns pequenos ajustes nas classes de modelo antes de criarmos a migration que faz o relacionamento entre Artista e Música: 
+
+```Csharp
+// Modelos/Musica.cs
+namespace ScreenSound.Modelos;
+
+internal class Musica
+{
+    // Resto do código.
+    public Artista? Artista { get; set; } // Não havia a declaração do artista.
+    // Resto do código.
+}
+```
+
+```Csharp
+// Modelos/Artista.cs
+namespace ScreenSound.Modelos; 
+
+internal class Artista 
+{
+    public ICollection<Musica> Musicas { get; set; }
+
+    public Artista(string nome, string bio)
+    {
+        Nome = nome;
+        Bio = bio;
+        FotoPerfil = "https://cdn.pixabay.com/photo/2016/08/08/09/17/avatar-1577909_1280.png";
+    }
+
+    public string Nome { get; set; }
+    public string FotoPerfil { get; set; }
+    public string Bio { get; set; }
+    public int Id { get; set; }
+
+    public void AdicionarMusica(Musica musica)
+    {
+        Musicas.Add(musica);
+    }
+
+    public void ExibirDiscografia()
+    {
+        Console.WriteLine($"Discografia do artista {Nome}");
+        foreach (var musica in Musicas)
+        {
+            Console.WriteLine($"Música: {musica.Nome}");
+        }
+    }
+
+    public override string ToString()
+    {
+        return $@"Id: {Id}
+            Nome: {Nome}
+            Foto de Perfil: {FotoPerfil}
+            Bio: {Bio}";
+    }
+}
+```
+Vamos criar a migration com o comando `Add-Migration` no Console do Gerenciador de Pacotes:
+```bash
+PM> Add-Migration RelacionarArtistaMusica
+Build started...
+Build succeeded.
+To undo this action, use Remove-Migration.
+PM> 
+```
+
+Código resultante da criação da migration RelacionarArtistaMusica:
+```Csharp
+// Migrations/{timestamp}_RelacionarArtistaMusica.cs
+using Microsoft.EntityFrameworkCore.Migrations;
+
+#nullable disable
+
+namespace ScreenSound.Migrations
+{
+    /// <inheritdoc />
+    public partial class RelacionarArtistaMusica : Migration
+    {
+        /// <inheritdoc />
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.AddColumn<int>(
+                name: "ArtistaId",
+                table: "Musicas",
+                type: "int",
+                nullable: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Musicas_ArtistaId",
+                table: "Musicas",
+                column: "ArtistaId");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Musicas_Artistas_ArtistaId",
+                table: "Musicas",
+                column: "ArtistaId",
+                principalTable: "Artistas",
+                principalColumn: "Id");
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropForeignKey(
+                name: "FK_Musicas_Artistas_ArtistaId",
+                table: "Musicas");
+
+            migrationBuilder.DropIndex(
+                name: "IX_Musicas_ArtistaId",
+                table: "Musicas");
+
+            migrationBuilder.DropColumn(
+                name: "ArtistaId",
+                table: "Musicas");
+        }
+    }
+}
+```
+
+Finalmente, vamos aplicar a migration com o comando `Update-Database`:
+```bash
+PM> Update-Database
+Build started...
+Build succeeded.
+Applying migration '20250617010721_RelacionarArtistaMusica'.
+Done.
+PM> 
+```
