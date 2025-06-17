@@ -1516,3 +1516,95 @@ internal class MenuRegistrarMusica : Menu
     }
 }
 ```
+## Mão na massa: adicionando um novo menu
+Criando um método no DAL para retornar uma lista de entidades:
+```Csharp
+// Banco/DAL.cs
+// Imports omitidos
+namespace ScreenSound.Banco
+{
+    internal class DAL<T> where T : class
+    {
+        // Resto do código
+        public IEnumerable<T>? RecuperarListaPor(Func<T, bool> condicao)
+        {
+            return context.Set<T>().Where<T>(condicao);
+        }
+    }
+}
+```
+Criação do novo menu par amostrar as músicas por ano:
+```Csharp
+using ScreenSound.Banco;
+using ScreenSound.Modelos;
+
+namespace ScreenSound.Menus;
+
+internal class MenuMostrarMusicasPorAno : Menu
+{
+    public override void Executar(DAL<Artista> artistaDAL)
+    {
+        base.Executar(artistaDAL);
+        ExibirTituloDaOpcao("Músicas por ano");
+        Console.Write("Digite o ano em que a música foi publicada: ");
+        string ano = Console.ReadLine()!;
+        // Uso da DAL de músicas.
+        DAL<Musica> musicaDAL = new DAL<Musica>(new ScreenSoundContext());
+        var musicas = musicaDAL.RecuperarListaPor(m => m.AnoLancamento == Convert.ToInt32(ano)).ToList();
+        if (musicas.Any())
+        {
+            Console.WriteLine($"\nMúsicas do ano de {ano}:");
+            foreach (var musica in musicas)
+            {
+                musica.ExibirFichaTecnica();
+            }
+        }
+        else
+        {
+            Console.WriteLine($"\nNão foram encontradas músicas publicadas no ano de {ano}.");
+        }
+        Console.WriteLine("Digite uma tecla para voltar ao menu principal");
+        Console.ReadKey();
+        Console.Clear();
+    }
+}
+```
+> O uso do método `ToList()` resultante do método `DAL.RecuperarListaPor(condicao)` serve para liberar o `DataReader` usado no DAL. 
+Atualização do menu principal:
+```Csharp
+// Program.cs
+using ScreenSound.Banco;
+using ScreenSound.Menus;
+using ScreenSound.Modelos;
+
+var artistaDAL = new DAL<Artista>(new ScreenSoundContext());
+
+Dictionary<int, Menu> opcoes = new();
+// Outras opções omitidas.
+opcoes.Add(5, new MenuMostrarMusicasPorAno());
+opcoes.Add(-1, new MenuSair());
+
+void ExibirLogo()
+{
+    // Resto do código
+}
+
+void ExibirOpcoesDoMenu()
+{
+    ExibirLogo();
+    // Outras opções omitidas.
+    Console.WriteLine("Digite 5 para exibir todas as músicas de um ano específico");
+    Console.WriteLine("Digite -1 para sair");
+
+    Console.Write("\nDigite a sua opção: ");
+    string opcaoEscolhida = Console.ReadLine()!;
+    int opcaoEscolhidaNumerica = int.Parse(opcaoEscolhida);
+
+    if (opcoes.ContainsKey(opcaoEscolhidaNumerica))
+    {
+        // Resto do código
+    }
+}
+
+ExibirOpcoesDoMenu();
+```
